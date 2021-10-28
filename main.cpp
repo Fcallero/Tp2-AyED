@@ -243,7 +243,7 @@ void limpirarListaIns(NodoIncidente *&lista){
   while(lista){
     anterior = lista;
     if(anterior->sgte != NULL){
-      lista = lista=lista->sgte;
+      lista = lista->sgte;
       delete anterior;
     } else {
       delete lista;
