@@ -1,9 +1,8 @@
 #include <iostream>
 #include <stdio.h>
-#include<conio.h>
 #include<string.h>
-#include<stdlib.h> 
-
+#include<stdlib.h> // char a int (atoi) punto 7 y 8
+#include <conio.h> // para el getch
 #define NOMBRE_ARCHIVO "Asegurados.BAK"
 #define ARCHIVO_PROCESAR "Procesados.BAK"
 
@@ -125,7 +124,7 @@ void levantar_cuentas(Nodo *&lista)
     }
     else
     {
-        cout << "No se pude abrir el archivo " << NOMBRE_ARCHIVO << " " << endl;
+        cout << "No se pude abrir el archivo " << NOMBRE_ARCHIVO << " o no existe " << endl;
     }
     return;
 }
@@ -219,7 +218,7 @@ void mostrarPoliza(registroAsegurado pol){
       cout << "Desactivada" << endl;
     }
 }
-
+//funciona
 void listar_polizas(Nodo *lista){
     Nodo *aux=lista;
     if( lista){
@@ -319,7 +318,7 @@ void cargar_pol(Nodo *&lista){
     return;
 }
 
-void finalizar_jornada(Nodo *&lista , NodoIncidente *&incidente){
+void finalizar_jornada(Nodo *&lista){
       FILE *f;
     registroAsegurado pol;
     if(f=fopen(NOMBRE_ARCHIVO, "wb")){
@@ -432,7 +431,7 @@ void cargar_indicentes()
     }
     return;
 }
-void procesar_incidentes(Nodo *lista)
+void procesar_incidentes(Nodo *lista) 
 {
     Nodo *paux=lista;
     NodoIncidente *aux;
@@ -476,7 +475,7 @@ void procesar_incidentes(Nodo *lista)
 return;
 }
 
-int contarAccidentes(Nodo *lista) //Cuenta los accidentes que tuvo ese nro de poliza en el año 2020
+int contarAccidentes(Nodo *lista)
 {
     Nodo *aux=lista;
     FILE *f;
@@ -496,58 +495,52 @@ int contarAccidentes(Nodo *lista) //Cuenta los accidentes que tuvo ese nro de po
 
 void mostrar_polizaHTML(Nodo *lista_RegistroAsegurado)
 {
-    FILE *incidentes;
+    Nodo *aux=lista_RegistroAsegurado;
     FILE *f;
-    char estado[50];
-    registroIncidente ri;
+
     f = fopen("index.html", "wt");
     fprintf(f,"<html><body>\n");
     fprintf(f,"<h1>Polizas con mas de 5 incidentes durante el 2020</h1>\n");
     fprintf(f,"<table border=5>\n");
-    fprintf(f,"<th>Nro de poliza</th><th>DNI</th><th>Apellido</th><th>Nombre</th><th>Patente</th><th>Estado</th><th>Cantidad de Incidentes</th>\n");
-    while(lista_RegistroAsegurado)
+    
+
+    int accidentes=0;
+    char estado[7];
+    if(f)
     {
-        if (lista_RegistroAsegurado->Poliza.cant_incidentes >5)
+        fprintf(f,"<th>Nro de poliza</th><th>DNI</th><th>Apellido</th><th>Nombre</th><th>Patente</th><th>Estado</th><th>Cantidad de Incidentes</th>\n");
+        do
         {
-            if (incidentes=fopen(ARCHIVO_PROCESAR,"rb"))
+            accidentes=contarAccidentes(aux);
+            if (accidentes>5)
             {
-
-                while(fread(&ri, sizeof(registroIncidente),1,incidentes))
+                if (aux->Poliza.cuota)
                 {
-
-                    if(lista_RegistroAsegurado->Poliza.nro_poliza == ri.nro_poliza && atoi(ri.fechaHora)-2020000000<= 123123)//durante el 2020
-                    {
-                        if (lista_RegistroAsegurado->Poliza.cuota)
-                        {
-                            strcpy(estado,"Al dia");
-                        }
-                        else
-                        {
-                            strcpy(estado,"Presenta deudas");
-                        }
-                        fprintf(f,"<tr>\n");
-                        fprintf(f,"<td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%d</td>\n",
-                                lista_RegistroAsegurado->Poliza.nro_poliza,
-                                lista_RegistroAsegurado->Poliza.dniAsegurado,
-                                lista_RegistroAsegurado->Poliza.apellido,
-                                lista_RegistroAsegurado->Poliza.nombre,
-                                lista_RegistroAsegurado->Poliza.patente,
-                                estado,
-                                lista_RegistroAsegurado->Poliza.cant_incidentes);
-                        fprintf(f,"</tr>\n");
-                    }
-
+                    strcpy(estado,"Al dia");
                 }
-                fseek(incidentes,0,SEEK_SET);
-                fclose(incidentes);
+                else
+                {
+                    strcpy(estado,"Adeuda");
+                }
+                fprintf(f,"<tr>\n");
+                fprintf(f,"<td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%d</td>\n",
+                                aux->Poliza.nro_poliza,
+                                aux->Poliza.dniAsegurado,
+                                aux->Poliza.apellido,
+                                aux->Poliza.nombre,
+                                aux->Poliza.patente,
+                                estado,
+                                aux->Poliza.cant_incidentes);
+                fprintf(f,"</tr>\n");
             }
-            else
-            {
-                cout << "Error de archivo" << endl;
-            }
-        }
-        lista_RegistroAsegurado = lista_RegistroAsegurado->sgte;
+            aux=aux->sgte;
+        } while (aux);
     }
+    else
+    {
+        cout << "Error de archivo" << endl;
+    }
+
     fprintf(f, "</table>");
     fprintf(f, "</body>");
     fprintf(f, "</html>");
@@ -555,7 +548,7 @@ void mostrar_polizaHTML(Nodo *lista_RegistroAsegurado)
     return;
 }
 
-void mostrar_polizaCSV(Nodo *lista)  
+void mostrar_polizaCSV(Nodo *lista) 
 {
     Nodo *aux=lista;
     FILE *f;
@@ -606,14 +599,14 @@ void mostrarMenu()
 
 int main(){
   Nodo *lista=NULL;
-  levantar_cuentas(lista); 
+  levantar_cuentas(lista);
 
   int npol;
   char opcion;
 
   do
   {
-    mostrarMenu();  
+    mostrarMenu(); 
     opcion = getch();
 
     switch(opcion)
@@ -625,7 +618,7 @@ int main(){
           case '2':
             cout << " Ingrese el numero de poliza a desactivar: " << endl;
             cin >> npol;
-            desactivar_poliza(npol,lista);  
+            desactivar_poliza(npol,lista); 
           break;
 
           case '3':
@@ -654,12 +647,11 @@ int main(){
 
     cout << "\nPresione una tecla para continuar" << endl;
     getch();
-    system("cls"); //para limpiar la pantalla
+    system("cls"); // limpia pantalla y muestra el menu devuelta 
   } while( opcion!=27);
 
- finalizar_jornada(lista, lista->sublista); 
+ finalizar_jornada(lista);
 
-  //para no causar un memory leak
-  limpiarListas(lista);
+  limpiarListas(lista); 
   return 0;
 }
